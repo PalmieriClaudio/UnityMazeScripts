@@ -9,4 +9,4 @@ A repo for scripts for my learning project in unity
 
 -A pathfinding script to direct a character through the navigation of a maze (towards an exit or any point of interest)
 
-The script may or may not be optimized or finished 
+The scripts may or may not be optimized or finished 
