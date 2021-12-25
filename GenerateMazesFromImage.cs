@@ -6,6 +6,8 @@ public class GenerateMazesFromImage : MonoBehaviour
     public Texture2D sourceImage;
     public int wallThreshold = 100;
     public int wallHeight = 3;
+    public GameObject wallPrefab;
+    GameObject wall;
 
     int _sourceWidth;
     int _sourceHeight;
@@ -23,6 +25,8 @@ public class GenerateMazesFromImage : MonoBehaviour
         sourcePixelsGreyscale = TurnGreyscale(sourcePixelsAligned);
         inWallStatus = new bool[sourcePixelsAligned.Length];
         FindWallsCoordinates();
+        InstantiateMaze();
+        InstantiateGround();
     }
     void FindWallsCoordinates()
     {
@@ -53,19 +57,19 @@ public class GenerateMazesFromImage : MonoBehaviour
     {
         inWallStatus[i] = true;
         if (i % _sourceWidth == _sourceWidth - 1) return i;
-        if (CheckIfPixelIsWall(i + 1)) return CheckWallRight(i + 1);
+        if (CheckIfPixelIsWall(i + 1) && PixelNotInWall(i + 1)) return CheckWallRight(i + 1);
         return i;
     }
     /// <summary>
-    /// Check if the wall extends downwards
+    /// Check if the wall extends upwards
     /// </summary>
     /// <param name="i">Index of the start of the wall</param>
-    /// <returns>Returns null if there's no wall downwards, otherwise returns the index of the wall's end coordinate</returns>
+    /// <returns>Returns null if there's no wall upwards, otherwise returns the index of the wall's end coordinate</returns>
     int CheckWallUp(int j)
     {
         if (j + _sourceWidth >= sourcePixelsGreyscale.Count) return j;
         inWallStatus[j] = true;
-        if (CheckIfPixelIsWall(j + _sourceWidth)) return CheckWallUp(j + _sourceWidth);
+        if (CheckIfPixelIsWall(j + _sourceWidth) && PixelNotInWall(j + _sourceWidth)) return CheckWallUp(j + _sourceWidth);
         return j;
     }
     /// <summary>
@@ -82,5 +86,28 @@ public class GenerateMazesFromImage : MonoBehaviour
             _greyscaleList.Add(grayscalePixel);
         }
         return _greyscaleList;
+    }
+    void InstantiateMaze()
+    {
+        foreach (var wall in wallsList)
+        {
+            var wallStart = new Vector2(wall[0] % _sourceWidth, (wall[0] - wall[0] % _sourceWidth) / _sourceWidth);
+            var wallEnd = new Vector2(wall[1] % _sourceWidth, (wall[1] - wall[1] % _sourceWidth) / _sourceWidth);
+            InstantiateWall(wallStart, wallEnd);
+        }
+    }
+    void InstantiateWall(Vector2 wallStart, Vector2 wallEnd)
+    {
+        wall = Instantiate(wallPrefab, new Vector3(wallStart.x, 0, wallStart.y), Quaternion.identity);
+        var wallLength = Vector2.Distance(wallStart, wallEnd) + 1;
+        wall.transform.position = new Vector3((wallStart.x + wallEnd.x) / 2, (wall.transform.position.y + wallHeight / 2) + .5f, (wallStart.y + wallEnd.y) / 2);
+        Quaternion newRotation = Quaternion.Euler(new Vector3(0, Mathf.Atan2(wallStart.y - wallEnd.y, wallStart.x - wallEnd.x) * Mathf.Rad2Deg, 0));
+        wall.transform.localScale = new Vector3(wallLength, wallHeight, 1);
+        wall.transform.rotation = newRotation;
+    }
+    void InstantiateGround()
+    {
+        GameObject ground = Instantiate(wallPrefab, new Vector3((_sourceWidth / 2) - .5f, -.5f, (_sourceHeight / 2) - .5f), Quaternion.identity);
+        ground.transform.localScale = new Vector3(_sourceWidth, ground.transform.localScale.y, _sourceHeight);
     }
 }
