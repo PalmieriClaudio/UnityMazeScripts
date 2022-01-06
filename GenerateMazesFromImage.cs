@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,6 +8,8 @@ public class GenerateMazesFromImage : MonoBehaviour
     public int wallThreshold = 100;
     public int wallHeight = 3;
     public GameObject wallPrefab;
+    public GameObject groundPrefab;
+    public int labirintWidth = 5;
     GameObject wall;
 
     int _sourceWidth;
@@ -19,11 +22,22 @@ public class GenerateMazesFromImage : MonoBehaviour
     bool[] inWallStatus;
     void Start()
     {
-        _sourceWidth = sourceImage.width;
-        _sourceHeight = sourceImage.height;
-        sourcePixelsAligned = sourceImage.GetPixels32(sourceMipLevel);
-        sourcePixelsGreyscale = TurnGreyscale(sourcePixelsAligned);
-        inWallStatus = new bool[sourcePixelsAligned.Length];
+        try
+        {
+            _sourceWidth = sourceImage.width;
+            _sourceHeight = sourceImage.height;
+            sourcePixelsAligned = sourceImage.GetPixels32(sourceMipLevel);
+            sourcePixelsGreyscale = TurnGreyscale(sourcePixelsAligned);
+            inWallStatus = new bool[sourcePixelsGreyscale.Count];
+        }
+        catch (Exception)
+        {
+            RandomMazeGenerator generator = new RandomMazeGenerator();
+            _sourceWidth = 3 * labirintWidth + 1;
+            _sourceHeight = 3 * labirintWidth + 1;
+            sourcePixelsGreyscale = generator.GenerateNewMaze(labirintWidth);
+            inWallStatus = new bool[sourcePixelsGreyscale.Count];
+        }
         FindWallsCoordinates();
         InstantiateMaze();
         InstantiateGround();
@@ -107,7 +121,7 @@ public class GenerateMazesFromImage : MonoBehaviour
     }
     void InstantiateGround()
     {
-        GameObject ground = Instantiate(wallPrefab, new Vector3((_sourceWidth / 2) - .5f, -.5f, (_sourceHeight / 2) - .5f), Quaternion.identity);
+        GameObject ground = Instantiate(groundPrefab, new Vector3((_sourceWidth / 2) - .5f, -.5f, (_sourceHeight / 2) - .5f), Quaternion.identity);
         ground.transform.localScale = new Vector3(_sourceWidth, ground.transform.localScale.y, _sourceHeight);
     }
 }
