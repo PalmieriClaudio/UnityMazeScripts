@@ -9,7 +9,7 @@ public class GenerateMazesFromImage : MonoBehaviour
     public int wallHeight = 3;
     public GameObject wallPrefab;
     public GameObject groundPrefab;
-    public int labirintWidth = 5;
+    public int labirintWidth = 30;
     GameObject wall;
 
     int _sourceWidth;
